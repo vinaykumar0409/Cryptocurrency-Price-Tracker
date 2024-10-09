@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>CryptoTracker - Trading</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet"> 
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- DataTables Stylesheet -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+</head>
+
+<body>
+    <!-- Spinner Start -->
+    <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <!-- Spinner End -->
+
+    <!-- Navbar Start -->
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <a href="{{ url_for('index') }}" class="navbar-brand p-0">
+            <h1 class="text-primary"><i class="fas fa-search-dollar me-3"></i>CryptoTracker</h1>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="fa fa-bars"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav ms-auto py-0">
+                <a href="{{ url_for('index') }}" class="nav-item nav-link">Home</a>
+                <a href="/" class="nav-item nav-link">About</a>
+                <a href="/" class="nav-item nav-link">Contact</a>
+                {% if not current_user.is_authenticated %}
+                    <a href="/login" class="nav-item nav-link">Login</a>
+                    <a href="/register" class="nav-item nav-link">Register</a>
+                {% else %}
+                    <a href="{{ url_for('get_crypto_data') }}" class="nav-item nav-link">Prices</a>
+                    <a href="{{ url_for('watchlist') }}" class="nav-item nav-link">Watchlist</a>
+                    <a href="{{ url_for('logout') }}" class="nav-item nav-link">Logout</a>
+                    <!-- Add to Watchlist Button -->
+                    <button id="addToWatchlist" class="btn btn-primary ms-3">Add to Watchlist</button>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <!-- Navbar End -->
+
+    <!-- Header Start -->
+    <div class="container-fluid bg-primary py-5 mb-5 hero-header">
+        <div class="container py-5">
+            <div class="row justify-content-center py-5">
+                <div class="col-lg-10 pt-lg-5 mt-lg-5 text-center">
+                    <h1 class="display-3 text-white mb-3 animated slideInDown">Cryptocurrency Prices by Market Cap</h1>
+                    <p class="fs-4 text-white mb-4 animated slideInDown">cryptocurrencies with real-time data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Header End -->
+
+    <!-- Search Bar Start -->
+    <div class="container mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search for cryptocurrencies...">
+    </div>
+    <!-- Search Bar End -->
+
+    <!-- Trading Section Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-12 wow fadeInUp" data-wow-delay="0.1s">
+                    <h2 class="mb-4">Cryptocurrency Prices</h2>
+                    <div class="table-responsive">
+                        <table id="cryptoTable" class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Name</th>
+                                        <th>Current Price</th>
+                                        <th>Change 1h</th>
+                                        <th>Change 24h</th>
+                                        <th>Change 7d</th>
+                                        <th>Total Volume</th>
+                                        <th>Market Cap</th>
+                                        <th>Market Cap Rank</th>
+                                        <th>Price Chart</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for crypto in cryptos %}
+                                    <tr>
+                                        <td><a href="{{ url_for('crypto_detail', symbol=crypto.symbol) }}">{{ crypto.symbol }}</a></td>
+                                        <td>{{ crypto.name }}</td>
+                                        <td>${{ crypto.current_price }}</td>
+                                        <td>{{ crypto.price_change_percentage_1h }}%</td>
+                                        <td>{{ crypto.price_change_percentage_24h }}%</td>
+                                        <td>{{ crypto.price_change_percentage_7d }}%</td>
+                                        <td>${{ crypto.total_volume }}</td>
+                                        <td>${{ crypto.market_cap }}</td>
+                                        <td>{{ crypto.market_cap_rank }}</td>
+                                        <td>
+                                            {{ charts[crypto.symbol] | safe }}  <!-- Use the returned chart HTML -->
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Trading Section End -->
+
+    <!-- Footer Start -->
+    <div class="container-fluid footer py-5 wow fadeIn" data-wow-delay="0.2s">
+        <div class="container py-5">
+            <div class="row g-5">
+                <div class="col-md-6">
+                    <h1 class="text-white mb-4"><i class="fas fa-search-dollar me-3"></i>CryptoTracker</h1>
+                    <p>Manage your portfolio with ease and stay updated on your investments.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-white mb-4">Newsletter</h5>
+                    <p>Stay updated with our latest investment opportunities and market insights.</p>
+                    <div class="position-relative">
+                        <input class="form-control bg-transparent w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email">
+                        <button type="button" class="btn btn-primary py-2 px-3 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Copyright Start -->
+    <div class="container-fluid copyright py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    &copy; <a class="fw-medium" href="#">CryptoTracker</a>, All Right Reserved.
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    Designed By <a class="fw-medium" href="https://htmlcodex.com">HTML Codex</a>
+                    Distributed By <a class="fw-medium" href="https://themewagon.com">ThemeWagon</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Copyright End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='lib/wow/wow.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/easing/easing.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/waypoints/waypoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/owlcarousel/owl.carousel.min.js') }}"></script>
+
+    <!-- Template Javascript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        var table = $('#cryptoTable').DataTable();
+
+        // Search functionality
+        $('#searchInput').on('keyup', function() {
+            table.search(this.value).draw(); // Use DataTable's built-in search method
+        });
+    });
+    </script>
+</body>
+
+</html>
