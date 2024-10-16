@@ -61,8 +61,6 @@
                     <a href="{{ url_for('get_crypto_data') }}" class="nav-item nav-link">Prices</a>
                     <a href="{{ url_for('watchlist') }}" class="nav-item nav-link">Watchlist</a>
                     <a href="{{ url_for('logout') }}" class="nav-item nav-link">Logout</a>
-                    <!-- Add to Watchlist Button -->
-                    <button id="addToWatchlist" class="btn btn-primary ms-3">Add to Watchlist</button>
                 {% endif %}
             </div>
         </div>
@@ -93,7 +91,10 @@
         <div class="container">
             <div class="row g-5">
                 <div class="col-lg-12 wow fadeInUp" data-wow-delay="0.1s">
-                    <h2 class="mb-4">Cryptocurrency Prices</h2>
+                    <h2 class="mb-4">Cryptocurrency Prices</h2>                    <!-- Add this button somewhere in your HTML, e.g., above the table -->
+                    <div class="container mb-4">
+                        <button id="refreshPrices" class="btn btn-primary">Refresh Prices</button>
+                    </div>
                     <div class="table-responsive">
                         <table id="cryptoTable" class="table table-hover">
                                 <thead>
@@ -197,6 +198,26 @@
             table.search(this.value).draw(); // Use DataTable's built-in search method
         });
     });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Handle the click event for the refresh button
+            $('#refreshPrices').on('click', function() {
+                // Send a request to refresh the prices
+                $.ajax({
+                    url: '/refresh_prices', // Your backend endpoint
+                    method: 'POST',
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert(response.message); // Show success message
+                        location.reload(); // Reload the page to show updated prices
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error updating prices: ' + xhr.responseJSON.message);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 

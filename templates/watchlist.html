@@ -61,8 +61,6 @@
                     <a href="{{ url_for('get_crypto_data') }}" class="nav-item nav-link">Prices</a>
                     <a href="{{ url_for('watchlist') }}" class="nav-item nav-link">Watchlist</a>
                     <a href="{{ url_for('logout') }}" class="nav-item nav-link">Logout</a>
-                    <!-- Add to Watchlist Button -->
-                    <button id="addToWatchlist" class="btn btn-primary ms-3">Add to Watchlist</button>
                 {% endif %}
             </div>
         </div>
@@ -124,6 +122,9 @@
                                         <td>{{ crypto.market_cap_rank }}</td>
                                         <td>
                                             {{ charts[crypto.symbol] | safe }}  <!-- Use the returned chart HTML -->
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger remove-from-watchlist" data-symbol="{{ crypto.symbol }}">Remove</button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -197,6 +198,30 @@
             table.search(this.value).draw(); // Use DataTable's built-in search method
         });
     });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Handle the click event for the remove button
+            $('.remove-from-watchlist').on('click', function() {
+                const symbol = $(this).data('symbol'); // Get the cryptocurrency symbol
+                const userId = '{{ current_user.id }}'; // Get the current user's ID
+    
+                // Send a request to remove the crypto from the watchlist
+                $.ajax({
+                    url: '/remove_from_watchlist', // Your backend endpoint
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ user_id: userId, symbol: symbol }),
+                    success: function(response) {
+                        alert(response.message); // Show success message
+                        location.reload(); // Reload the page to update the watchlist
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error removing from watchlist: ' + xhr.responseJSON.message);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 
